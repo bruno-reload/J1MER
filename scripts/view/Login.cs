@@ -14,9 +14,6 @@ namespace UNITY_J1MER
         TcpClient clientOne;
         TcpClient clientTwo;
 
-
-        StreamReader reader;
-        StreamWriter writer;
         string server = "127.0.0.1";
 
         public Player playerOne;
