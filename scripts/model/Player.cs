@@ -7,42 +7,51 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
+[Serializable]
 public class Player : MonoBehaviour
 {
-    private TcpClient client;
+    public static int playerOwnerId;
+    public bool listening;
+    public PlayerData pData;
+
     protected StreamReader reader;
     protected StreamWriter writer;
 
-    public bool listening;
-
-    public static int playerId;
+    private TcpClient client;
     private Task current = null;
     private bool ready = false;
+    public GameManager gm;
+
     public bool Started { get; set; }
     public int direction { get; set; }
-    [HideInInspector]
-    public int clienteId = -1;
-    private PlayerData pData;
+    public int tcpClienteId { get; set; }
+    public bool update { get; set; }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("collectable"))
+        {
+            gm.AddCollectable(other.gameObject.GetComponent<Collectable>().cData);
+        }
+        if (other.CompareTag("obstacle"))
+        {
+            gm.AddObstacle(other.gameObject.GetComponent<Obstacle>().oData);
+        }
+    }
     private void Start()
     {
         if (this.listening)
-            playerId = GetInstanceID();
-        this.pData = new PlayerData();
-        pData.position = Vector3.one;
-        pData.rotation = Quaternion.identity;
-
+            playerOwnerId = GetInstanceID();
+        tcpClienteId = -1;
 
     }
-    public string login { get; set; }
-    public string password { get; set; }
-    [HideInInspector]
-    public bool update;
-
     public void Enter(TcpClient client)
     {
+        Enter(client, new PlayerData());
+    }
+    public void Enter(TcpClient client, PlayerData pData)
+    {
         this.client = client;
-        this.client.NoDelay = true;
 
         NetworkStream stream = this.client.GetStream();
 
@@ -55,21 +64,25 @@ public class Player : MonoBehaviour
         {
             data = reader.ReadLine();
         }
-        clienteId = Int32.Parse(data);
+        tcpClienteId = Int32.Parse(data);
+
+        this.pData = pData;
 
         ready = true;
     }
+
     private void Update()
     {
-        pData.position = transform.position;
-        pData.rotation = transform.rotation;
-
-        string pd = JsonUtility.ToJson(pData);
         if (ready)
         {
+            pData.position = transform.position;
+            pData.rotation = transform.rotation;
+
+            string pd = JsonUtility.ToJson(pData);
+
             if (!listening)
             {
-                playerId = clienteId;
+                playerOwnerId = tcpClienteId;
 
                 if (update)
                 {
@@ -86,12 +99,12 @@ public class Player : MonoBehaviour
                 if (current.IsCompleted)
                 {
                     var list = (current as Task<string>).Result.Split('$');
-                    if (Int32.Parse(list[0]) != playerId)
+                    if (Int32.Parse(list[0]) != playerOwnerId)
                     {
-                        var temp = JsonUtility.FromJson<PlayerData>(list[1]);
+                        pData = JsonUtility.FromJson<PlayerData>(list[1]);
 
-                        transform.position = temp.position;
-                        transform.rotation = temp.rotation;
+                        transform.position = pData.position;
+                        transform.rotation = pData.rotation;
                     }
                     current = null;
                 }
@@ -99,10 +112,6 @@ public class Player : MonoBehaviour
         }
     }
 }
-[Serializable]
-public class PlayerData {
-    public Vector3 position;
-    public Quaternion rotation;
-}
+
 
 
