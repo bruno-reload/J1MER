@@ -21,7 +21,22 @@ class MatchController : DAO
 
         return id;
     }
-   
+    internal void Change(PlayerData p)
+    {
+        string sql = "UPDATE MATCH SET POSITION = @POSITION WHERE ID = @ID;";
+
+        command = new SqlCommand(sql, Connection());
+
+        parameter = new SqlParameter("@ID", p.matchId);
+        parameter.SqlDbType = System.Data.SqlDbType.Int;
+        command.Parameters.Add(parameter);
+
+        parameter = new SqlParameter("@POSITION", p.matchPosition);
+        parameter.SqlDbType = System.Data.SqlDbType.Int;
+        command.Parameters.Add(parameter);
+
+        reader = command.ExecuteReader();
+    }
     public void Delete(int Id)
     {
         String sql = "DELETE FROM POSITION WHERE ID = @ID;";
@@ -57,8 +72,7 @@ class MatchController : DAO
         }
         return md;
     }
-
-    public List<MatchData> Spawner(int value)
+    public List<MatchData> RandomDraw(int value)
     {
         String sql = "SELECT TOP(@VALUE) * FROM POSITION ORDER BY NEWID();";
 
@@ -91,20 +105,5 @@ class MatchController : DAO
         return list;
     }
 
-    internal void Change(PlayerData p)
-    {
-        string sql = "UPDATE MATCH SET POSITION = @POSITION WHERE ID = @ID;";
-
-        command = new SqlCommand(sql, Connection());
-
-        parameter = new SqlParameter("@ID", p.matchId);
-        parameter.SqlDbType = System.Data.SqlDbType.Int;
-        command.Parameters.Add(parameter);
-
-        parameter = new SqlParameter("@POSITION", p.matchPosition);
-        parameter.SqlDbType = System.Data.SqlDbType.Int;
-        command.Parameters.Add(parameter);
-
-        reader = command.ExecuteReader();
-    }
+   
 }

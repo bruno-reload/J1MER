@@ -19,19 +19,28 @@ public class Finish : MonoBehaviour
     public void CountEnd()
     {
         p1.pData.countEnd++;
-        Debug.Log("end " + p2.pData.matchPosition);
-        if (p1.pData.countEnd == p1.pData.countStart && maxTurns == p1.pData.countEnd)
+
+        if (p1.pData.countEnd == p1.pData.countStart)
         {
-            Debug.Log("terminou");
-            if (p2.pData.matchPosition > 0)
+            gameManager.GetComponent<GameManager>().ActiveGroup();
+            gameManager.GetComponent<GameManager>().LoadEllements();
+            gameManager.GetComponent<GameManager>().PositionRandomDraw();
+            gameManager.GetComponent<GameManager>().Write();
+
+            if (maxTurns == p1.pData.countEnd)
             {
-                p1.pData.matchPosition = 2;
-                endGame = true;
-            }
-            else
-            {
-                p1.pData.matchPosition = 1;
-                endGame = true;
+                Debug.Log("terminou");
+                if (p2.pData.matchPosition > 0)
+                {
+                    p1.pData.matchPosition = 2;
+                    p1.pData.endGame = true;
+                    endGame = true;
+                }
+                else
+                {
+                    p1.pData.matchPosition = 1;
+                    endGame = true;
+                }
             }
         }
     }

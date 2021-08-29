@@ -104,10 +104,9 @@ public class CollectableController : DAO
         }
         return list;
     }
-
     internal void SavePosition(CollectableData collectableData)
     {
-        String sql = "INSERT INTO REWARDS (CR, PC) VALUES (@CR, @PR);";
+        String sql = "INSERT INTO REWARDS (CR, PR) VALUES (@CR, @PR);";
 
         command = new SqlCommand(sql, Connection());
 
@@ -115,7 +114,7 @@ public class CollectableController : DAO
         parameter.SqlDbType = System.Data.SqlDbType.Int;
         command.Parameters.Add(parameter);
 
-        parameter = new SqlParameter("@PC", collectableData.pData.id);
+        parameter = new SqlParameter("@PR", collectableData.pData.id);
         parameter.SqlDbType = System.Data.SqlDbType.Int;
         command.Parameters.Add(parameter);
 

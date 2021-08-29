@@ -47,37 +47,16 @@ public class Collectable : MonoBehaviour
 
         ready = true;
     }
-
     public void Load(CollectableData collectableData)
     {
         this.cData = collectableData;
     }
-
-    private void Update()
-    {
-        //if (current == null)
-        //{
-        //    current = reader.ReadLineAsync();
-        //}
-        //if (current.IsCompleted)
-        //{
-        //    var list = (current as Task<string>).Result.Split('$');
-        //    if (tcpClienteId == Int32.Parse(list[0]))
-        //    {
-        //        if (list[1].Equals("true"))
-        //            gameObject.SetActive(true);
-        //    }
-        //    current = null;
-        //}
-    }
-
     public void Speech()
     {
         cData.ready = true;
         writer.WriteLine(JsonUtility.ToJson(cData));
         writer.Flush();
     }
-
     public void Listening()
     {
         if (current == null)

@@ -72,7 +72,7 @@ public class Obstacle : MonoBehaviour
             {
                 oData = JsonUtility.FromJson<ObstacleData>(result[1]);
                 gameObject.SetActive(oData.ready);
-                transform.position = oData.positionData.position;
+                transform.position = oData.pData.position;
             }
             current = null;
         }

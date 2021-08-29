@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 [Serializable]
@@ -21,6 +22,7 @@ public class Player : MonoBehaviour
     private Task current = null;
     private bool ready = false;
     public GameManager gm;
+    public GameObject pontuation;
 
     public bool Started { get; set; }
     public int direction { get; set; }
@@ -29,13 +31,17 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        var value = Int32.Parse(pontuation.GetComponent<TextMeshProUGUI>().text);
         if (other.CompareTag("collectable"))
         {
             gm.AddCollectable(other.gameObject.GetComponent<Collectable>().cData);
+            Int32.Parse(pontuation.GetComponent<TextMeshProUGUI>().text = (value + other.gameObject.GetComponent<Collectable>().cData.value).ToString());
         }
         if (other.CompareTag("obstacle"))
         {
             gm.AddObstacle(other.gameObject.GetComponent<Obstacle>().oData);
+            Int32.Parse(pontuation.GetComponent<TextMeshProUGUI>().text = (value + other.gameObject.GetComponent<Obstacle>().oData.value).ToString());
+
         }
     }
     private void Start()
@@ -70,7 +76,6 @@ public class Player : MonoBehaviour
 
         ready = true;
     }
-
     private void Update()
     {
         if (ready)
@@ -92,24 +97,35 @@ public class Player : MonoBehaviour
             }
             else
             {
-                if (current == null)
+                try
                 {
-                    current = reader.ReadLineAsync();
-                }
-                if (current.IsCompleted)
-                {
-                    var list = (current as Task<string>).Result.Split('$');
-                    if (Int32.Parse(list[0]) != playerOwnerId)
+                    if (current == null)
                     {
-                        pData = JsonUtility.FromJson<PlayerData>(list[1]);
-
-                        transform.position = pData.position;
-                        transform.rotation = pData.rotation;
+                        current = reader.ReadLineAsync();
                     }
-                    current = null;
+                    if (current.IsCompleted)
+                    {
+                        var list = (current as Task<string>).Result.Split('$');
+                        if (Int32.Parse(list[0]) != playerOwnerId)
+                        {
+                            pData = JsonUtility.FromJson<PlayerData>(list[1]);
+
+                            transform.position = pData.position;
+                            transform.rotation = pData.rotation;
+                        }
+                        current = null;
+                        reader.DiscardBufferedData();
+                    }
+                }
+                catch (Exception e) {
+                    Debug.Log(e);
                 }
             }
         }
+    }
+    public void Speech(string msg) {
+        writer.WriteLine(msg);
+        writer.Flush();
     }
 }
 

@@ -8,6 +8,9 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public Player p1 { set; private get; }
+    public Player p2 { set; private get; }
+
     public GameObject collectable;
     public GameObject obstacle;
 
@@ -19,8 +22,6 @@ public class GameManager : MonoBehaviour
     private PositionController pc;
     private MatchController mc;
 
-    private Match match;
-
     private List<TcpClient> clientCollectable;
     private List<TcpClient> clientObstacle;
 
@@ -28,22 +29,12 @@ public class GameManager : MonoBehaviour
     private List<ObstacleData> obstaclesData;
 
     //esse valor foi escolhido pos no servidor o maximo de cada instancia é 3, caso eu mude aqui terei que mudar la tbm
-    public const int MAX_ELEMENTS = 3;
+    public const int MAX_ELEMENTS = 6;
 
     private string server = "127.0.0.1";
     private int portCollectable = 5001;
     private int portObstacle = 5002;
 
-    public void AddCollectable(CollectableData collectable)
-    {
-        Debug.Log("+1 collectable");
-        collectablesData.Add(collectable);
-    }
-    public void AddObstacle(ObstacleData obstacle)
-    {
-        Debug.Log("+1 obstacle");
-        obstaclesData.Add(obstacle);
-    }
     private void Start()
     {
         collectables = new List<GameObject>();
@@ -59,7 +50,38 @@ public class GameManager : MonoBehaviour
 
         clientCollectable = new List<TcpClient>();
         clientObstacle = new List<TcpClient>();
-        match = new Match();
+    }
+    private void Update()
+    {
+        Read();
+    }
+    public void ActiveGroup()
+    {
+        try
+        {
+            foreach (var e in collectables)
+            {
+                e.gameObject.SetActive(true);
+            }
+            foreach (var e in obstacles)
+            {
+                e.gameObject.SetActive(true);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
+        }
+    }
+    public void AddCollectable(CollectableData collectable)
+    {
+        Debug.Log("+1 collectable");
+        collectablesData.Add(collectable);
+    }
+    public void AddObstacle(ObstacleData obstacle)
+    {
+        Debug.Log("+1 obstacle");
+        obstaclesData.Add(obstacle);
     }
     public void LoadEllements()
     {
@@ -82,7 +104,7 @@ public class GameManager : MonoBehaviour
             Debug.Log(e);
         }
     }
-    public void CreateElements()
+    public void CreateConnections()
     {
         try
         {
@@ -94,15 +116,40 @@ public class GameManager : MonoBehaviour
             {
                 clientObstacle.Add(new TcpClient(server, portObstacle));
             }
-
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
+        }
+    }
+    public void CreateElements()
+    {
+        try
+        {
             for (int i = 0; i < MAX_ELEMENTS; i++)
             {
                 collectables.Add(Instantiate(collectable));
-                collectables[i].GetComponent<Collectable>().Enter(clientCollectable[i]);
             }
             for (int i = 0; i < MAX_ELEMENTS; i++)
             {
                 obstacles.Add(Instantiate(obstacle));
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
+        }
+    }
+    public void DefineElements()
+    {
+        try
+        {
+            for (int i = 0; i < MAX_ELEMENTS; i++)
+            {
+                collectables[i].GetComponent<Collectable>().Enter(clientCollectable[i]);
+            }
+            for (int i = 0; i < MAX_ELEMENTS; i++)
+            {
                 obstacles[i].GetComponent<Obstacle>().Enter(clientObstacle[i]);
             }
         }
@@ -133,25 +180,34 @@ public class GameManager : MonoBehaviour
             c.GetComponent<Obstacle>().Speech();
         }
     }
-    private void Update()
-    {
-        Read();
-    }
-    //nesse ponto devo colocar todos elementos coletaveis e colidiveis em suas posições
     public void PositionRandomDraw()
     {
         List<PositionData> position = pc.Spawner(GameManager.MAX_ELEMENTS * 2);
         int i = 0;
         while (i < GameManager.MAX_ELEMENTS)
         {
-            collectables[i].GetComponent<Collectable>().cData.pData = position[i];
-            collectables[i].transform.position = position[i].position;
+            if (i < position.Count)
+            {
+                collectables[i].GetComponent<Collectable>().cData.pData = position[i];
+                collectables[i].transform.position = position[i].position;
+            }
+            else
+            {
+                Destroy(collectables[i]);
+            }
             i++;
         }
         while (i < GameManager.MAX_ELEMENTS * 2)
         {
-            obstacles[i % GameManager.MAX_ELEMENTS].GetComponent<Obstacle>().oData.positionData = position[i];
-            obstacles[i % GameManager.MAX_ELEMENTS].transform.position = position[i].position;
+            if (i < position.Count)
+            {
+                obstacles[i % GameManager.MAX_ELEMENTS].GetComponent<Obstacle>().oData.pData = position[i];
+                obstacles[i % GameManager.MAX_ELEMENTS].transform.position = position[i].position;
+            }
+            else
+            {
+                Destroy(obstacles[i % GameManager.MAX_ELEMENTS]);
+            }
             i++;
         }
         Write();
@@ -160,13 +216,15 @@ public class GameManager : MonoBehaviour
     {
         foreach (CollectableData collectableData in collectablesData)
         {
+            Debug.Log(collectablesData.Count);
             cc.Save(p.matchId, collectableData);
-            //cc.SavePosition(collectableData);
+            cc.SavePosition(collectableData);
         }
         foreach (ObstacleData obstacleData in obstaclesData)
         {
+            Debug.Log(obstaclesData.Count);
             oc.Save(p.matchId, obstacleData);
-            //oc.SavePosition(obstacleData);
+            oc.SavePosition(obstacleData);
         }
         mc.Change(p);
     }

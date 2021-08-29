@@ -12,8 +12,7 @@ public class ObstacleData
 
     #region connect
     public bool ready;
-    [SerializeField] public PositionData positionData;
-    public PositionData pData;
+    [SerializeField] public PositionData pData;
     #endregion
     public ObstacleData()
     {

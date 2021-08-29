@@ -104,7 +104,6 @@ public class ObstacleController : DAO
         }
         return list;
     }
-
     internal void SavePosition(ObstacleData obstacleData)
     {
         String sql = "INSERT INTO PENALTIES (OP, PP) VALUES (@OP, @PP);";

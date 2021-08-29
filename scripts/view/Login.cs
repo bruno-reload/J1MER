@@ -33,6 +33,7 @@ namespace UNITY_J1MER
             pc = new PlayerController();
             mc = new MatchController();
         }
+
         public void Connect()
         {
             try
@@ -61,17 +62,23 @@ namespace UNITY_J1MER
 
                 if (playerTwo.GetComponent<Player>().tcpClienteId == 1)
                 {
+                    gameManager.GetComponent<GameManager>().CreateConnections();
                     gameManager.GetComponent<GameManager>().CreateElements();
+                    gameManager.GetComponent<GameManager>().DefineElements();
                 }
                 if (playerTwo.GetComponent<Player>().tcpClienteId == 3)
                 {
+                    gameManager.GetComponent<GameManager>().CreateConnections();
                     gameManager.GetComponent<GameManager>().CreateElements();
+                    gameManager.GetComponent<GameManager>().DefineElements();
                     gameManager.GetComponent<GameManager>().LoadEllements();
                     gameManager.GetComponent<GameManager>().PositionRandomDraw();
                     gameManager.GetComponent<GameManager>().Write();
 
                     SwapPlayerPosition();
                     SwapPlayerMaterial();
+
+                    playerTwo.GetComponent<Player>().pData.startGame = true;
                 }
 
                 gameObject.SetActive(false);
@@ -81,14 +88,12 @@ namespace UNITY_J1MER
                 Console.WriteLine("erro de conexão {0}", e);
             }
         }
-
         private void SwapPlayerMaterial()
         {
             Material material = this.playerOne.gameObject.GetComponentInChildren<MeshRenderer>().material;
             this.playerOne.gameObject.GetComponentInChildren<MeshRenderer>().material = this.playerTwo.gameObject.GetComponentInChildren<MeshRenderer>().material;
             this.playerTwo.gameObject.GetComponentInChildren<MeshRenderer>().material = material;
         }
-
         private void SwapPlayerPosition()
         {
             Vector3 position = this.playerOne.transform.position;
@@ -97,7 +102,6 @@ namespace UNITY_J1MER
             this.playerOne.transform.SetPositionAndRotation(this.playerTwo.transform.position, this.playerTwo.transform.rotation);
             this.playerTwo.transform.SetPositionAndRotation(position, rotation);
         }
-
         private PlayerData Check()
         {
             String log = login.GetComponent<Text>().text;
@@ -105,7 +109,6 @@ namespace UNITY_J1MER
 
             return pc.Load(log, pwd);
         }
-
         public void CreateUser()
         {
 
@@ -118,6 +121,5 @@ namespace UNITY_J1MER
         {
             register.SetActive(false);
         }
-
     }
 }

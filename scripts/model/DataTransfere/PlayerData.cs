@@ -18,6 +18,8 @@ public class PlayerData
     public int matchPosition = 0;
     public int countStart = 0;
     public int countEnd = 0;
+    public bool endGame = false;
+    public bool startGame = false;
     #endregion
     public PlayerData()
     {
